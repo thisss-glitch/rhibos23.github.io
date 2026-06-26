@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CENTRAL MAINFRAME // SECURE NODE 23</title>
+<style>
+    :root {
+        --amber: #ffb000;
+        --bg: #020408;
+        --matrix: #00ff66;
+        --alert: #ff3333;
+        --cyber-blue: #00f0ff;
+        
+        /* THEME COLORS */
+        --lfc-red: #c8102e;
+        --stitch-blue: #00b4d8;
+        --coco-orange: #fca311;
+        --coco-purple: #6a0dad;
+        --romantic: #ffb3c7;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        overflow: hidden;
+    }
+
+    body { 
+        color: var(--amber); 
+        font-family: 'Courier New', monospace; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        box-sizing: border-box;
+        transition: background 4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    body::before {
+        content: " ";
+        display: block;
+        position: fixed;
+        top: 0; left: 0; bottom: 0; right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+        z-index: 9999;
+        background-size: 100% 4px, 6px 100%;
+        pointer-events: none;
+    }
+
+    /* BIOS BOOT SCREEN */
+    #bios-boot {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: #000;
+        color: #fff;
+        z-index: 10010;
+        padding: 30px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        text-align: left;
+    }
+    .ascii-art {
+        color: var(--stitch-blue);
+        font-size: 0.65rem;
+        line-height: 1.1;
+        margin: 20px 0;
+        font-weight: bold;
+        white-space: pre;
+    }
+
+    /* FULL SCREEN INITIALIZATION WRAPPER */
+    .fullscreen-container {
+        display: none; 
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        padding: 40px;
+        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .panel { 
+        max-width: 950px; 
+        width: 100%; 
+        height: auto;
+        max-height: 90vh;
+        background: rgba(1, 2, 4, 0.98); 
+        border: 2px solid var(--amber); 
+        padding: 45px; 
+        border-radius: 4px; 
+        box-shadow: 0 0 60px rgba(255, 176, 0, 0.12); 
+        box-sizing: border-box;
+        position: relative;
+        opacity: 1;
+        transform: scale(1);
+        transition: all 2.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        overflow-y: auto;
+    }
+
+    .terminal-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        border-bottom: 1px solid rgba(255, 176, 0, 0.3);
+        padding-bottom: 12px;
+        margin-bottom: 25px;
+        opacity: 0.8;
+    }
+
+    .live-feed {
+        background: #000;
+        border: 1px solid rgba(255, 176, 0, 0.2);
+        padding: 18px;
+        font-size: 0.85rem;
+        height: 160px;
+        overflow-y: auto;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    .bg-matrix-waterfall {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        color: rgba(0, 255, 102, 0.03);
+        font-size: 0.7rem;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+        line-height: 1.2;
+    }
+
+    .panel-content { position: relative; z-index: 2; }
+
+    input[type="text"] { 
+        width: 100%; 
+        padding: 18px; 
+        background: #000; 
+        border: 1px solid var(--amber); 
+        color: var(--amber); 
+        font-family: 'Courier New', monospace; 
+        font-size: 1.15rem; 
+        margin-top: 20px; 
+        box-sizing: border-box; 
+        text-align: center;
+        letter-spacing: 3px;
+    }
+    input:focus { outline: none; box-shadow: 0 0 20px rgba(255, 176, 0, 0.4); }
+
+    .btn { 
+        width: 100%; 
+        padding: 18px; 
+        background: var(--amber); 
+        border: none; 
+        color: #000; 
+        font-weight: bold; 
+        font-family: 'Courier New', monospace;
+        font-size: 1.05rem; 
+        margin-top: 15px; 
+        cursor: pointer; 
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+    .btn:hover { background: #fff; box-shadow: 0 0 20px #fff; }
+
+    /* PHASE 2 - THEMED SWITCHES */
+    #phase2-panel { display: none; }
+    .hex-scrambler-wrapper {
+        display: flex;
+        justify-content: space-between;
+        background: #000;
+        border: 1px solid var(--alert);
+        padding: 20px;
+        margin: 20px 0;
+        font-weight: bold;
+    }
+    .hex-slot { font-size: 1.4rem; color: var(--alert); letter-spacing: 4px; width: 60%; }
+    .manual-override-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    
+    .override-switch {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.05);
+        color: #aaa;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+    
+    .override-switch.engaged.lfc { background: rgba(200, 16, 46, 0.15); border-color: var(--lfc-red); color: var(--lfc-red); box-shadow: 0 0 15px rgba(200, 16, 46, 0.4); }
+    .override-switch.engaged.stitch { background: rgba(0, 180, 216, 0.15); border-color: var(--stitch-blue); color: var(--stitch-blue); box-shadow: 0 0 15px rgba(0, 180, 216, 0.4); }
+    .override-switch.engaged.coco { background: rgba(252, 163, 17, 0.15); border-color: var(--coco-orange); color: var(--coco-orange); box-shadow: 0 0 15px rgba(252, 163, 17, 0.4); }
+    .override-switch.engaged.rhibo { background: rgba(0, 255, 102, 0.15); border-color: var(--matrix); color: var(--matrix); box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
+
+    /* VAULT PHASE */
+    #vault-panel { display: none; position: absolute; z-index: 10; text-align: center; }
+    .vault-container { position: relative; width: 280px; height: 280px; margin: 40px auto; display: flex; align-items: center; justify-content: center; }
+    .vault-ring { position: absolute; border-radius: 50%; border: 4px solid var(--alert); transition: all 0.4s ease-out; }
+    .vault-ring.r1 { width: 100%; height: 100%; border-top-color: transparent; border-bottom-color: transparent; animation: spinRight 3s linear infinite; }
+    .vault-ring.r2 { width: 75%; height: 75%; border-left-color: transparent; border-right-color: transparent; border-style: dashed; animation: spinLeft 2s linear infinite; }
+    .vault-ring.r3 { width: 50%; height: 50%; border: 2px dotted var(--alert); animation: spinRight 5s linear infinite; }
+    .vault-text { font-size: 1.8rem; font-weight: bold; color: var(--alert); z-index: 2; letter-spacing: 5px; text-shadow: 0 0 10px var(--alert); }
+    
+    .vault-unlocked .vault-ring.r1 { border-color: var(--lfc-red); border-top-color: transparent; border-bottom-color: transparent; border-style: solid; animation-duration: 0.5s; }
+    .vault-unlocked .vault-ring.r2 { border-color: var(--stitch-blue); border-left-color: transparent; border-right-color: transparent; border-style: solid; animation-duration: 0.5s; }
+    .vault-unlocked .vault-ring.r3 { border-color: var(--coco-orange); border-style: solid; animation-duration: 0.5s; }
+    .vault-unlocked .vault-text { color: var(--matrix); text-shadow: 0 0 20px var(--matrix); }
+
+    @keyframes spinRight { 100% { transform: rotate(360deg); } }
+    @keyframes spinLeft { 100% { transform: rotate(-360deg); } }
+
+    /* CONFETTI & HAPPY BIRTHDAY SPAM */
+    #confetti-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9990; display: none; transition: opacity 1s; opacity: 1; }
+    #hb-spam-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9991; display: none; overflow: hidden; transition: opacity 1s; opacity: 1; }
+    .hb-spam-text { position: absolute; font-family: 'Impact', 'Courier New', sans-serif; font-weight: bold; font-size: 2.5rem; text-transform: uppercase; white-space: nowrap; opacity: 0; animation: popInFadeOut 1.5s ease-in-out infinite alternate; text-shadow: 0 0 15px currentColor, 0 0 30px currentColor; }
+    
+    @keyframes popInFadeOut {
+        0% { opacity: 0; transform: scale(0.3) rotate(calc(var(--rot) - 20deg)); }
+        50% { opacity: 1; transform: scale(1.2) rotate(var(--rot)); }
+        100% { opacity: 0; transform: scale(1.5) rotate(calc(var(--rot) + 20deg)); }
+    }
+
+    /* PHASE 3 */
+    #matrix-screen { display: none; text-align: center; }
+    .progress-track { width: 100%; background: #111; border: 1px solid var(--matrix); height: 18px; margin-top: 25px; position: relative;}
+    .progress-fill { width: 0%; height: 100%; background: var(--matrix); transition: width 0.1s linear; }
+    .percent-counter { position: absolute; width: 100%; text-align: center; left: 0; top: 0; font-size: 0.8rem; color: #000; font-weight: bold; line-height: 18px;}
+
+    /* PHASE 4 - THEMED FINAL PAYLOAD */
+    #final-payload { 
+        display: none; 
+        line-height: 1.95; 
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 1.12rem;
+        color: #ffffff;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding-right: 15px;
+    }
+    #final-payload::-webkit-scrollbar { width: 6px; }
+    #final-payload::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+    #final-payload::-webkit-scrollbar-thumb { background: var(--coco-orange); border-radius: 4px; }
+
+    .payload-meta {
+        font-family: 'Courier New', monospace;
+        color: var(--stitch-blue);
+        font-size: 0.85rem;
+        border-bottom: 1px dashed rgba(255,255,255,0.25);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* DECRYPTED PHOTO STYLING */
+    .payload-img {
+        width: 100%;
+        max-width: 380px;
+        display: block;
+        margin: 25px auto;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+    }
+    .payload-img:hover {
+        transform: scale(1.03) rotate(1deg);
+    }
+    .img-lfc { border-color: var(--lfc-red); box-shadow: 0 0 20px rgba(200, 16, 46, 0.35); }
+    .img-coco { border-color: var(--coco-orange); box-shadow: 0 0 20px rgba(252, 163, 17, 0.35); }
+
+    /* SPOTIFY EMBED INTEGRATION */
+    .spotify-wrapper {
+        margin: 25px 0 35px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .letter-chapter { margin-bottom: 40px; }
+    .chapter-title {
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-left: 3px solid;
+        padding-left: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .title-lfc { color: var(--lfc-red); border-color: var(--lfc-red); }
+    .title-stitch { color: var(--stitch-blue); border-color: var(--stitch-blue); }
+    .title-coco { color: var(--coco-orange); border-color: var(--coco-orange); }
+    .title-rhibo { color: var(--matrix); border-color: var(--matrix); }
+
+    /* ANIMATIONS & OVERLAYS */
+    .screen-shake { animation: intenseShake 0.15s infinite; }
+    @keyframes intenseShake {
+        0% { transform: translate(3px, 1px) rotate(0deg); }
+        25% { transform: translate(-2px, -3px) rotate(-1deg); }
+        50% { transform: translate(-4px, 0px) rotate(1deg); }
+        75% { transform: translate(1px, 3px) rotate(-1deg); }
+        100% { transform: translate(-1px, -2px) rotate(0deg); }
+    }
+    .pulse-red { animation: pulseBgRed 0.5s infinite alternate; }
+    @keyframes pulseBgRed { 0% { background-color: rgba(38, 6, 6, 0.85); } 100% { background-color: rgba(70, 10, 10, 0.95); } }
+    .glitch-active { animation: textGlitch 0.2s infinite; }
+    @keyframes textGlitch {
+        0% { transform: skew(2deg); text-shadow: 3px 0 var(--alert), -3px 0 var(--cyber-blue); }
+        50% { transform: skew(-1deg); text-shadow: -3px 0 var(--alert), 3px 0 var(--matrix); }
+        100% { transform: skew(0deg); text-shadow: 2px 0 var(--cyber-blue), -2px 0 var(--matrix); }
+    }
+
+    .bloom-out { opacity: 0 !important; transform: scale(0.9) skewX(-3deg) !important; filter: blur(20px) !important; }
+    .bloom-in { animation: boxBloom 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes boxBloom {
+        0% { opacity: 0; transform: scale(1.08); filter: blur(15px); }
+        100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+    }
+
+    #destruct-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 0, 0, 0.96);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: var(--alert);
+        font-family: 'Courier New', monospace;
+        text-align: center;
+    }
+
+    .melt-away {
+        filter: blur(40px) !important;
+        transform: scale(0.8) translateY(80px) !important;
+        opacity: 0 !important;
+        transition: all 3.5s cubic-bezier(0.76, 0, 0.24, 1) !important;
+    }
+
+    #phoenix-screen {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #000000;
+        z-index: 10005;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        font-family: 'Courier New', monospace;
+        color: var(--matrix);
+        cursor: crosshair;
+    }
+
+    #phoenix-cursor {
+        display: inline-block;
+        width: 10px;
+        height: 18px;
+        background: var(--matrix);
+        margin-left: 5px;
+        animation: blink 0.8s infinite;
+    }
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+    .binary-particle {
+        position: fixed;
+        color: rgba(0, 255, 102, 0.6);
+        font-size: 0.8rem;
+        pointer-events: none;
+        animation: fallFade 1.5s linear forwards;
+    }
+    @keyframes fallFade {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(100px) scale(0.6); opacity: 0; }
+    }
+</style>
+</head>
+<body>
+
+<div id="bios-boot"></div>
+
+<audio id="sirenSound" loop src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+
+<canvas id="confetti-canvas"></canvas>
+<div id="hb-spam-container"></div>
+
+<div class="fullscreen-container" id="global-intro-container">
+    <div class="panel" id="phase1-panel">
+        <div class="bg-matrix-waterfall" id="bg-waterfall-1"></div>
+        <div class="panel-content">
+            <div class="terminal-header">
+                <span>NETWORK CORE: QUANTUM_DECRYPT_OHANA_LINK</span>
+                <span>STATUS: ONLINE</span>
+            </div>
+            <h2 class="glitch-active">🔒 RESTRICTED MAINFRAME: ARCHIVE NODE 23</h2>
+            <div class="live-feed" id="log-feed-1">
+                > BROADCAST ROUTINES RUNNING OVER ENCRYPTED PROXIES...<br>
+                > HANDSHAKE ACCEPTED ON REMOTE SPEC: PORT_23.<br>
+                > SECURE MATRIX CONTAINER LOCATED. ENTER TARGET SEQUENCE...
+            </div>
+            <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9;">A secure, multi-tier data citadel has intercepted coordinates matching your location. Supply the compiled 23-character investigation phrase to command a complete network breach.</p>
+            <input type="text" id="masterPhraseInput" placeholder="[ INPUT OVERRIDE SIGNATURE ]" autocomplete="off" spellcheck="false">
+            <button class="btn" onclick="executePhase1()">INITIALIZE OVERRIDE</button>
+        </div>
+    </div>
+</div>
+
+<div class="panel" id="phase2-panel" style="position: absolute;">
+    <div class="panel-content">
+        <div class="terminal-header">
+            <span style="color: var(--alert);">🚨 MAINFRAME EMERGENCY DEFENSE PROTOCOLS ENGAGED</span>
+            <span style="color: var(--alert);">PORT BLOCKED</span>
+        </div>
+        <h2 style="color: var(--alert);" class="glitch-active">> INTEGRITY FAULT: RE-ROUTING PACKETS</h2>
+        <p style="font-size: 0.9rem; line-height: 1.5;">The system security architecture is actively trying to lock down and scrub your credentials. <b>Manually execute all four system bridge links</b> to force open the decryption gate:</p>
+        <div class="hex-scrambler-wrapper">
+            <span>DECRYPTION HASH SYNC:</span>
+            <div class="hex-slot" id="live-hex-scrambler">0X7F4B9E</div>
+        </div>
+        <div class="manual-override-container">
+            <div class="override-switch" id="sw1" onclick="engageSwitch(1, 'lfc')">[ YNWA_PROTOCOL: OFFLINE ]<br><b>FORCE BRIDGE LINK</b></div>
+            <div class="override-switch" id="sw2" onclick="engageSwitch(2, 'stitch')">[ EXP_626_OHANA: OFFLINE ]<br><b>FORCE BRIDGE LINK</b></div>
+            <div class="override-switch" id="sw3" onclick="engageSwitch(3, 'coco')">[ OFRENDA_MEMORY: OFFLINE ]<br><b>FORCE BRIDGE LINK</b></div>
+            <div class="override-switch" id="sw4" onclick="engageSwitch(4, 'rhibo')">[ RHIBO_CORE_23: OFFLINE ]<br><b>FORCE BRIDGE LINK</b></div>
+        </div>
+        <div class="live-feed" id="log-feed-2" style="border-color: rgba(255,51,51,0.3); color: var(--alert); height: 100px;">
+            > EMERGENCY ALERT: CORE SYSTEM ATTEMPTING SECTOR WIPE...<br>
+            > AWAITING MANUAL INTERRUPT INTERFACE COMMANDS...
+        </div>
+    </div>
+</div>
+
+<div class="panel" id="vault-panel">
+    <div class="terminal-header">
+        <span style="color: var(--cyber-blue);">NODE BYPASSED // ANALYZING THEMATIC KERNEL</span>
+    </div>
+    <div class="vault-container" id="vault-lock-ui">
+        <div class="vault-ring r1"></div>
+        <div class="vault-ring r2"></div>
+        <div class="vault-ring r3"></div>
+        <div class="vault-text" id="vault-status-text">LOCKED</div>
+    </div>
+    <p style="color: var(--cyber-blue); font-size: 0.9rem; margin-top: 30px;">> SYNCHRONIZING TUMBLERS...</p>
+</div>
+
+<div class="panel" id="matrix-screen" style="position: absolute;">
+    <div class="bg-matrix-waterfall" id="bg-waterfall-2"></div>
+    <div class="panel-content">
+        <div class="terminal-header">
+            <span>⚡ HARDWARE SECURITY COMPROMISED</span>
+            <span style="color: var(--matrix);">EXTRACTION INITIALIZED</span>
+        </div>
+        <h2 style="color: var(--matrix);" id="matrix-status">> EXTRACTING SECURE PACKETS FROM CORE ARCHIVE...</h2>
+        <div class="live-feed" id="stream-box" style="height: 180px; border-color: rgba(0,255,102,0.3); color: var(--matrix); text-align: left;"></div>
+        <div class="progress-track">
+            <div class="progress-fill" id="bar-fill"></div>
+            <div class="percent-counter" id="pct-count">0% COMPILING</div>
+        </div>
+    </div>
+</div>
+
+<div class="panel" id="final-payload" onscroll="checkScrollBottom()" style="position: absolute;">
+    <div class="panel-content">
+        <div class="payload-meta">
+            // PROTOCOL: UNCONDITIONAL OVERRIDE RECOVERY SUCCESSFUL<br>
+            // CLEARANCE GRANTED: LEVEL 7 ADMIN (7 YEARS METADATA PARSED)<br>
+            // PAYLOAD RECORD DECRYPTED FOR TARGET KEYWORD: RHIBO<br>
+            ---------------------------------------------------------------------
+        </div>
+        
+        <div class="spotify-wrapper">
+            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/69ukDoSMTmW0NLZgWD6qtv?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        <div id="birthday-letter">
+            <div class="letter-chapter">
+                <div class="chapter-title title-lfc">I. You'll Never Walk Alone // The Genesis Block</div>
+                <p>Happy 23rd Birthday, Rhibo! 🔴⚽</p>
+                <p>You tracked down every piece of hidden data, bypassed the simulated security counters, and systematically tore through this secondary network structure. Even though I am miles away today, my entire heart is centered right on your desk. </p>
+                <p>It is wild to stop and think about the sheer amount of time that has accumulated behind us. Seven years. Through every single shift in our environments, you have remained the one true, unshakeable constant in my universe. Whenever life felt overwhelming or chaotic, you stood right there with me. Just as the Kop sings passionately under the floodlights at Anfield, you've shown me the true meaning of loyalty. With you by my side, I know for a fact that I will never walk alone.</p>
+                <p>Think about everything we've navigated since 2019—the endless transitions, the changing seasons, and the moments where the world felt completely unpredictable. Through it all, our connection has been a masterclass in resilience. We built an unshakeable archive of trust, laughter, and mutual respect that outlasts any temporary glitch. You are the anchor that keeps everything grounded, the perfect synchronization of strength and kindness, and I couldn't be prouder of the person you are becoming every single day.</p>
+                
+                <img src="IMG_8917.png" alt="Rhibo LFC" class="payload-img img-lfc">
+            </div>
+
+            <div class="letter-chapter">
+                <div class="chapter-title title-stitch">II. Experiment 626 // Finding Our Ohana</div>
+                <p>When our paths first crossed, we were practically kids trying to figure out our place in the world. Much like Stitch crash-landing on a strange island and learning what it means to belong, we built our own family out of pure love, chaos, and absolute devotion. 🌺👽</p>
+                <p>Watching you grow over these seven years has been the greatest privilege of my life. I have seen you face obstacles that would have broken other people, and instead of giving up, you handled them with an intentional, quiet grace. You don't loud-mouth your strength; you just live it. You hold onto the people you love with a fierce, protective energy. You are my Ohana, Rhibo, and Ohana means nobody gets left behind or forgotten.</p>
+                <p>You have this rare, beautiful capacity to make the people around you feel entirely safe and fiercely protected. Your growth hasn't just been about ticking off years on a calendar; it's about the remarkable depth of character you display every single day. You approach life's messy, unscripted chapters with a quiet nobility that genuinely inspires me. No matter where life routes us or how heavy the workload gets, our foundational blueprint remains completely untouched and safely guarded.</p>
+            </div>
+
+            <div class="letter-chapter">
+                <div class="chapter-title title-coco">III. Remember Me // The Spirit of Us</div>
+                <p>There is a unique brilliance in how your mind functions. One of my favorite things in the world is watching you dive headfirst into the things you care about. When you get fully lost inside the quiet universes of your books, your entire demeanor settles into a beautiful, peaceful focus. 🎸💀</p>
+                <p>People often say that distance diminishes relationships, that time eventually thins out the initial spark. But our seven-year history proves the exact opposite. Every mile between us has only served to prove how durable our foundation actually is. Just like the beautiful marigold petals in Coco bridging the gap between worlds, our connection spans any distance. Even when we are apart, you are always with me in every shared song, every inside joke, and every memory we keep alive.</p>
+                <p>We have woven our lives together so deeply that distance is nothing more than a superficial metric. Our late-night debriefs, the shared music tracks that become the vibrant soundtrack to our days, and the unspoken understanding we share are things that time cannot degrade. You are woven into the fabric of my everyday thoughts. This chapter is a celebration of that beautiful, lasting echo—a melody that keeps playing across any distance, louder and sweeter with each passing year.</p>
+                
+                <img src="IMG_8916.png" alt="Rhibo Hug" class="payload-img img-coco">
+            </div>
+
+            <div class="letter-chapter">
+                <div class="chapter-title title-rhibo">IV. Execution Command // End of Transmission</div>
+                <p>As you step cleanly into your 23rd year, I want you to carry an absolute certainty of how deeply appreciated, loved, and admired you are. You are beautiful inside and out, a brilliant mind matched with a fierce, protective heart.</p>
+                <p>I know a digital terminal isn't enough to celebrate a soul as magnificent as yours. But let this baseline server stand as proof that no matter the walls, the structures, or the parameters built around us, we always find a way to clear the path. You deserve a year filled with the same boundless joy, peace, and love that you effortlessly bring into my life every day. Cheers to your 23 years, cheers to our 7, and cheers to every unwritten sector waiting for us in the horizon ahead.</p>
+                
+                <p style="text-align: center; color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-top: 50px; font-family: 'Courier New', monospace;">
+                    [ 🔚 END OF STORAGE BUFFER REACHED. SCROLL TO END TO EXPEL MEMORY CORE ]
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="destruct-overlay">
+    <h1 style="font-size: 3rem; margin: 0; letter-spacing: 5px;" class="glitch-active">⚠️ CORE OVERLOAD ⚠️</h1>
+    <h3 style="letter-spacing: 3px; margin: 20px 0;">MEM_SECTOR_23 IS SELF-DESTRUCTING</h3>
+    <div style="font-size: 5rem; font-weight: bold; color: #fff; text-shadow: 0 0 30px var(--alert);" id="countdown-clock">5.00</div>
+    <p style="margin-top: 30px; opacity: 0.7; font-size: 0.9rem;" id="wipe-subtext">> ERASING TRANSMISSION FOOTPRINTS...</p>
+</div>
+
+<div id="phoenix-screen" onmousemove="spawnBinary(event)">
+    <div style="max-width: 600px; width: 100%; padding: 20px; font-size: 1.3rem; letter-spacing: 2px; line-height: 1.8;">
+        <span id="phoenix-target"></span><span id="phoenix-cursor"></span>
+    </div>
+</div>
+
+<script>
+    const AudioEngine = {
+        ctx: null,
+        init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+        playTick() {
+            this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.04, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.04);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.04);
+        },
+        playClickSound() {
+            this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.1, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+        },
+        playUnlock() {
+            this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.2, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 1.5);
+        },
+        playExplosion() {
+            this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(80, this.ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(10, this.ctx.currentTime + 3.5);
+            gain.gain.setValueAtTime(0.4, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 3.5);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 3.5);
+        },
+        playWhiteNoise() {
+            this.init(); const bufferSize = 2 * this.ctx.sampleRate,
+            noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate),
+            output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+            const whiteNoise = this.ctx.createBufferSource(); whiteNoise.buffer = noiseBuffer;
+            const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 800;
+            const noiseGain = this.ctx.createGain(); noiseGain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 4.5);
+            whiteNoise.connect(filter); filter.connect(noiseGain); noiseGain.connect(this.ctx.destination);
+            whiteNoise.start(); whiteNoise.stop(this.ctx.currentTime + 4.5);
+        }
+    };
+
+    const asciiLines = [
+        "OHANA BIOS v7.23 - RECONSTRUCTING ARCHIVE DATA CORES...",
+        "Copyright (C) 2019-2026, Core Matrix Systems Inc.",
+        "RAM Test: 23626KB OK // NETWORK NODE: CONNECTED",
+        "Loading Sector Core Cryptography Interface...",
+        "",
+        "              __     __",
+        "             /  \\   /  \\",
+        "            /    \\_/    \\        ⚡ LINK STATUS: EXCELLENT",
+        "           _|  ●  _  ●  |_       ⚡ TARGET IDENTIFIER: RHIBO",
+        "          /   ____-____   \\      ⚡ RECONSTRUCTING ANFIELD LINK...",
+        "         |   /    |    \\   |",
+        "         |  |   ⚡ | ⚡  |  |     ,─.   ,─.  ,─.  ,─.  ,─.  ,─.  ,─.",
+        "          \\  \\___/ \\___/  /     ( Y ) ( N ) ( W ) ( A ) ( 2 ) ( 3 )",
+        "           \\             /       `─'   `─'  `─'  `─'  `─'  `─'  `─'",
+        "            \\___________/",
+        "               ||   ||",
+        "              (_|   |_)",
+        "",
+        "CORE MODULE STATUS:",
+        "[ OK ] Liverpool FC Heritage Shield Active",
+        "[ OK ] Experiment 626 Emulation Layer Engine Active",
+        "[ OK ] Ofrenda Remembrance Array Synchronized",
+        "",
+        "BOOT STAGE COMPLETED. ENTERING INTERACTIVE MAINFRAME ENCRYPTOR..."
+    ];
+
+    let lineIdx = 0;
+    const biosContainer = document.getElementById("bios-boot");
+
+    function runBiosSequencer() {
+        if (lineIdx < asciiLines.length) {
+            let line = asciiLines[lineIdx];
+            if (line.includes("⚡") || line.includes("( Y )")) {
+                biosContainer.innerHTML += `<span style="color:var(--coco-orange)">${line}</span><br>`;
+            } else if (line.includes("[ OK ]")) {
+                biosContainer.innerHTML += `<span style="color:var(--matrix)">${line}</span><br>`;
+            } else {
+                biosContainer.innerHTML += line + "<br>";
+            }
+            biosContainer.scrollTop = biosContainer.scrollHeight;
+            lineIdx++;
+            setTimeout(runBiosSequencer, Math.floor(Math.random() * 80) + 30);
+        } else {
+            setTimeout(() => {
+                biosContainer.style.display = "none";
+                document.getElementById("global-intro-container").style.display = "flex";
+            }, 1800);
+        }
+    }
+    
+    window.onload = () => { runBiosSequencer(); };
+
+    function fillBackgroundMatrix(elementId) {
+        const el = document.getElementById(elementId); if(!el) return; let lines = "";
+        for(let i=0; i<40; i++) { lines += Math.random().toString(36).substring(2, 15) + " " + Math.random().toString(36).substring(2, 15) + "<br>"; }
+        el.innerHTML = lines;
+    }
+    fillBackgroundMatrix("bg-waterfall-1");
+
+    const p1Logs = [".", "..", "...", "> SECURITY READY. EXECUTE TERMINAL OVERRIDE..."];
+    let p1Idx = 0; const f1 = document.getElementById("log-feed-1");
+    function runP1Diagnostics() { if (p1Idx < p1Logs.length) { f1.innerHTML += "<br>" + p1Logs[p1Idx]; p1Idx++; f1.scrollTop = f1.scrollHeight; setTimeout(runP1Diagnostics, 400); } }
+    setTimeout(runP1Diagnostics, 300);
+
+    function executePhase1() {
+        AudioEngine.init(); AudioEngine.playClickSound();
+        const alarm = document.getElementById("sirenSound"); alarm.volume = 0.25; alarm.play().catch(() => {});
+        document.getElementById("phase1-panel").classList.add("screen-shake");
+        document.body.style.backgroundColor = "#1a0404";
+        setTimeout(() => {
+            document.getElementById("global-intro-container").style.display = "none";
+            document.getElementById("phase2-panel").style.display = "block";
+            document.getElementById("phase2-panel").classList.add("pulse-red");
+            startHexScrambler();
+        }, 1100);
+    }
+
+    let scramblerInterval;
+    function startHexScrambler() {
+        const hexBox = document.getElementById("live-hex-scrambler");
+        scramblerInterval = setInterval(() => { hexBox.innerText = "0X" + Math.floor(Math.random()*16777215).toString(16).toUpperCase(); }, 80);
+    }
+
+    let connectedSwitches = 0;
+    function engageSwitch(id, theme) {
+        const sw = document.getElementById("sw" + id);
+        if (!sw.classList.contains("engaged")) {
+            AudioEngine.playClickSound(); 
+            sw.classList.add("engaged");
+            sw.classList.add(theme); 
+            sw.innerHTML = `[ LINK_0${id}: ONLINE ]`; 
+            connectedSwitches++;
+            if (connectedSwitches === 4) {
+                clearInterval(scramblerInterval); document.getElementById("sirenSound").pause();
+                setTimeout(() => {
+                    document.getElementById("phase2-panel").style.display = "none";
+                    document.body.style.backgroundColor = "#020408";
+                    triggerVaultSequence();
+                }, 700);
+            }
+        }
+    }
+
+    function triggerVaultSequence() {
+        document.getElementById("vault-panel").style.display = "block";
+        let ticks = 0;
+        let tickInt = setInterval(() => { AudioEngine.playTick(); ticks++; if(ticks > 15) clearInterval(tickInt); }, 150);
+        
+        setTimeout(() => {
+            const vaultUI = document.getElementById("vault-lock-ui");
+            const vaultText = document.getElementById("vault-status-text");
+            vaultUI.classList.add("vault-unlocked");
+            vaultText.innerText = "UNLOCKED";
+            AudioEngine.playUnlock();
+            
+            setTimeout(() => {
+                shootConfetti();
+                showHappyBirthdaySpam();
+            }, 300);
+
+            setTimeout(() => {
+                document.getElementById("vault-panel").style.display = "none";
+                document.getElementById("confetti-canvas").style.opacity = "0";
+                document.getElementById("hb-spam-container").style.opacity = "0";
+                
+                setTimeout(() => {
+                    document.getElementById("matrix-screen").style.display = "block";
+                    fillBackgroundMatrix("bg-waterfall-2"); 
+                    runFinalDataCompilation(0);
+                }, 1000);
+            }, 6000); 
+        }, 2500);
+    }
+
+    let confettiCtx, confettiArr = [], confettiFrame;
+    function shootConfetti() {
+        const c = document.getElementById('confetti-canvas');
+        c.style.display = "block"; c.style.opacity = "1";
+        c.width = window.innerWidth; c.height = window.innerHeight;
+        confettiCtx = c.getContext('2d');
+        const themeColors = ['#c8102e', '#00b4d8', '#fca311', '#6a0dad', '#ffffff']; 
+        
+        for(let i = 0; i < 200; i++) {
+            confettiArr.push({
+                x: Math.random() * c.width,
+                y: Math.random() * c.height - c.height,
+                r: Math.random() * 6 + 4,
+                dx: Math.random() * 6 - 3,
+                dy: Math.random() * 6 + 3,
+                color: themeColors[Math.floor(Math.random() * themeColors.length)],
+                tilt: Math.floor(Math.random() * 10) - 10,
+                tiltAngleInc: (Math.random() * 0.07) + 0.05,
+                tiltAngle: 0
+            });
+        }
+        animateConfetti();
+    }
+    
+    function animateConfetti() {
+        confettiFrame = requestAnimationFrame(animateConfetti);
+        confettiCtx.clearRect(0,0, window.innerWidth, window.innerHeight);
+        confettiArr.forEach(c => {
+            c.tiltAngle += c.tiltAngleInc;
+            c.y += (Math.cos(c.tiltAngle) + c.dy + c.r / 2) / 2;
+            c.x += Math.sin(c.tiltAngle) * 2;
+            
+            confettiCtx.beginPath();
+            confettiCtx.lineWidth = c.r;
+            confettiCtx.strokeStyle = c.color;
+            confettiCtx.moveTo(c.x + c.tilt + c.r, c.y);
+            confettiCtx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
+            confettiCtx.stroke();
+
+            if (c.y > window.innerHeight) { 
+                c.x = Math.random() * window.innerWidth; c.y = -20; 
+            }
+        });
+    }
+
+    function showHappyBirthdaySpam() {
+        const container = document.getElementById("hb-spam-container");
+        container.style.display = "block"; container.style.opacity = "1";
+        
+        const spamMessages = [
+            { text: "HAPPY BIRTHDAY RHIBO!", color: "#00ff66" },
+            { text: "YNWA! 🔴⚽", color: "#c8102e" },
+            { text: "OHANA MEANS FAMILY 🌺👽", color: "#00b4d8" },
+            { text: "REMEMBER ME! 🎸💀", color: "#fca311" },
+            { text: "HAPPY 23RD!", color: "#6a0dad" }
+        ];
+
+        for(let i=0; i<45; i++) {
+            let el = document.createElement("div");
+            el.className = "hb-spam-text";
+            let msg = spamMessages[Math.floor(Math.random() * spamMessages.length)];
+            el.innerText = msg.text;
+            el.style.left = (Math.random() * 80) + "vw";
+            el.style.top = (Math.random() * 80) + "vh";
+            el.style.color = msg.color;
+            el.style.setProperty('--rot', (Math.random() * 60 - 30) + "deg");
+            el.style.animationDelay = (Math.random() * 1.5) + "s";
+            container.appendChild(el);
+        }
+    }
+
+    function runFinalDataCompilation(progress) {
+        const streamBox = document.getElementById("stream-box");
+        const fill = document.getElementById("bar-fill");
+        const textCount = document.getElementById("pct-count");
+        if (progress <= 100) {
+            fill.style.width = progress + "%"; textCount.innerText = progress + "% COMPILING THEMES";
+            AudioEngine.playTick();
+            streamBox.innerHTML += `> RECONSTRUCTING_VAULT_SECTOR_${Math.floor(Math.random()*900+100)}... DONE<br>`;
+            streamBox.scrollTop = streamBox.scrollHeight;
+            setTimeout(() => runFinalDataCompilation(progress + 1), Math.floor(Math.random() * 40) + 5);
+        } else {
+            document.getElementById("matrix-screen").classList.add("bloom-out");
+            setTimeout(() => {
+                document.getElementById("matrix-screen").style.display = "none";
+                const fp = document.getElementById("final-payload"); fp.style.display = "block"; fp.classList.add("bloom-in");
+                document.body.style.backgroundColor = "#0b0512"; document.body.style.color = "#ffffff";
+                fp.style.borderColor = "var(--stitch-blue)"; fp.style.boxShadow = "0 0 60px rgba(0, 180, 216, 0.25)";
+            }, 2000);
+        }
+    }
+
+    let destructTriggered = false;
+    function checkScrollBottom() {
+        if (destructTriggered) return;
+        const el = document.getElementById("final-payload");
+        if (el.scrollHeight - el.scrollTop <= el.clientHeight + 2) { destructTriggered = true; triggerSelfDestruct(); }
+    }
+
+    function triggerSelfDestruct() {
+        const alarm = document.getElementById("sirenSound"); alarm.volume = 0.4; alarm.play().catch(() => {});
+        AudioEngine.playWhiteNoise();
+
+        const overlay = document.getElementById("destruct-overlay"); overlay.style.display = "flex";
+        document.body.classList.add("screen-shake");
+
+        let timeLeft = 5.00; const clock = document.getElementById("countdown-clock");
+        const countdownInterval = setInterval(() => {
+            timeLeft -= 0.05; clock.innerText = timeLeft.toFixed(2); AudioEngine.playClickSound();
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval); alarm.pause();
+                clock.innerText = "0.00"; AudioEngine.playExplosion();
+                setTimeout(() => {
+                    document.body.classList.remove("screen-shake"); overlay.classList.add("melt-away");
+                    setTimeout(() => {
+                        overlay.style.display = "none"; document.body.style.background = "#000000";
+                        initPhoenixScreen();
+                    }, 3500);
+                }, 500);
+            }
+        }, 50);
+    }
+
+    function initPhoenixScreen() {
+        document.getElementById("phoenix-screen").style.display = "flex";
+        const targetString = "> HAPPY BIRTHDAY, RHIBO.\n> YNWA.\n> OHANA.\n> REMEMBER ME.\n\n> TO BE CONTINUED...";
+        const targetEl = document.getElementById("phoenix-target");
+        let charIdx = 0;
+        
+        function typePhoenixChar() {
+            if (charIdx < targetString.length) {
+                if (targetString[charIdx] === "\n") {
+                    targetEl.innerHTML += "<br>";
+                } else {
+                    targetEl.innerText += targetString[charIdx];
+                }
+                charIdx++;
+                AudioEngine.playTick();
+                setTimeout(typePhoenixChar, 120);
+            }
+        }
+        setTimeout(typePhoenixChar, 1500);
+    }
+
+    function spawnBinary(e) {
+        if (Math.random() > 0.15) return;
+        const particle = document.createElement("div");
+        particle.className = "binary-particle";
+        particle.innerText = Math.random() > 0.5 ? "1" : "0";
+        particle.style.left = e.clientX + "px";
+        particle.style.top = e.clientY + "px";
+        document.getElementById("phoenix-screen").appendChild(particle);
+        setTimeout(() => particle.remove(), 1500);
+    }
+</script>
+</body>
+</html>
